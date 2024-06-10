@@ -14,21 +14,15 @@
 int gpio_set_pin_handle( PIN_HANDLE *pin_handle, const mrbc_value *val )
 {
   if( val->tt != MRBC_TT_STRING ) goto ERROR_RETURN;
-
   const char *s = mrbc_string_cstr(val);
-  if( 'A' <= s[0] && s[0] <= 'Z' ) {
-    pin_handle->port = s[0] - 'A' + 1;
-  } else if( 'a' <= s[0] && s[0] <= 'z' ) {
-    pin_handle->port = s[0] - 'a' + 1;
-  } else {
-    goto ERROR_RETURN;
+
+  // in case of "PA0"
+  if( s[0] == 'P' && ('A' <= s[1] && s[1] <= 'Z') ) {
+    pin_handle->port = s[1] - 'A' + 1;
+    pin_handle->num = mrbc_atoi( s+2, 10 );
+    if( pin_handle->num > 15 ) goto ERROR_RETURN;
+    return 0;
   }
-
-  pin_handle->num = mrbc_atoi( s+1, 10 );
-  if( pin_handle->num > 15 ) goto ERROR_RETURN;
-
-  return 0;
-
 
  ERROR_RETURN:
   pin_handle->port = 0;
@@ -131,6 +125,7 @@ static void c_gpio_setmode(mrbc_vm *vm, mrbc_value v[], int argc)
   if( gpio_set_pin_handle( &pin, &v[1] ) != 0 ) goto ERROR_RETURN;
   if( v[2].tt != MRBC_TT_INTEGER ) goto ERROR_RETURN;
   if( gpio_setmode( &pin, mrbc_integer(v[2]) ) != 0 ) goto ERROR_RETURN;
+  SET_NIL_RETURN();
   return;
 
   /*
