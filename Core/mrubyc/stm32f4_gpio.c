@@ -2,7 +2,7 @@
 
 #include "main.h"
 #include "../mrubyc_src/mrubyc.h"
-#include "stm32_gpio.h"
+#include "stm32f4_gpio.h"
 
 
 /*! PIN handle setter
