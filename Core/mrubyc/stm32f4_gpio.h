@@ -27,6 +27,7 @@ typedef struct PIN_HANDLE {
 struct RObject;
 int gpio_set_pin_handle( PIN_HANDLE *pin_handle, const struct RObject *val );
 int gpio_setmode( const PIN_HANDLE *pin, unsigned int mode );
+int gpio_setmode_pwm( const PIN_HANDLE *pin, int ch );
 void mrbc_init_class_gpio( void );
 
 

@@ -84,6 +84,31 @@ int gpio_setmode( const PIN_HANDLE *pin, unsigned int mode )
 }
 
 
+/*! set mode to PWM
+
+  @param  pin	target pin.
+  @param  unit  timer unit number.
+  @return int	zero is no error.
+*/
+int gpio_setmode_pwm( const PIN_HANDLE *pin, int unit_num )
+{
+  static uint8_t const PWM_GPIO_ALT[/* unit */] = {
+    0, GPIO_AF1_TIM1, GPIO_AF1_TIM2, GPIO_AF2_TIM3,
+  };
+
+  GPIO_InitTypeDef GPIO_InitStruct = {
+    .Pin = MAP_NUM_TO_STM32PIN[pin->num],
+    .Mode = GPIO_MODE_AF_PP,
+    .Pull = GPIO_NOPULL,
+    .Speed = GPIO_SPEED_FREQ_LOW,
+    .Alternate = PWM_GPIO_ALT[unit_num],
+  };
+  HAL_GPIO_Init( MAP_PORT_TO_STM32GPIO[pin->port], &GPIO_InitStruct);
+
+  return 0;
+}
+
+
 /*! constructor
 
   gpio1 = GPIO.new("PA0", GPIO::OUT )

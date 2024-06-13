@@ -10,7 +10,6 @@
 
 static void c_led_write(mrbc_vm *vm, mrbc_value v[], int argc);
 static void c_sw_read(mrbc_vm *vm, mrbc_value v[], int argc);
-static void c_gpio_pa10_write(mrbc_vm *vm, mrbc_value v[], int argc);
 
 /* mruby/c プログラムが使うワークメモリの確保 */
 #define MRBC_MEMORY_SIZE (1024*30)
@@ -20,16 +19,21 @@ static uint8_t memory_pool[MRBC_MEMORY_SIZE];
 */
 void start_mrubyc( void )
 {
+  __HAL_RCC_GPIOA_CLK_ENABLE();
+  __HAL_RCC_GPIOB_CLK_ENABLE();
+  __HAL_RCC_GPIOC_CLK_ENABLE();
+
   mrbc_init(memory_pool, MRBC_MEMORY_SIZE);
   void mrbc_init_class_gpio(void);
   mrbc_init_class_gpio();
   void mrbc_init_class_adc(void);
   mrbc_init_class_adc();
+  void mrbc_init_class_pwm(void);
+  mrbc_init_class_pwm();
 
   // ユーザ定義メソッドの登録
   mrbc_define_method(0, 0, "led_write", c_led_write);
   mrbc_define_method(0, 0, "sw_read", c_sw_read);
-  mrbc_define_method(0, 0, "gpio_pa10_write", c_gpio_pa10_write);
 
   // タスクの登録
   extern const uint8_t sample1[];
@@ -60,15 +64,8 @@ static void c_sw_read(mrbc_vm *vm, mrbc_value v[], int argc)
     break;
   }
 }
-/*! GPIO PA10 write メソッドの実装
-*/
-static void c_gpio_pa10_write(mrbc_vm *vm, mrbc_value v[], int argc)
-{
-  int on_off = GET_INT_ARG(1);
-  HAL_GPIO_WritePin( GPIOA, GPIO_PIN_10, on_off );
-}
 
-/*! HAL（ダミー）
+/*! HAL
 */
 int hal_write(int fd, const void *buf, int nbytes)
 {
