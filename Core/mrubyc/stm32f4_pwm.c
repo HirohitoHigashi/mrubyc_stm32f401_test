@@ -49,22 +49,25 @@ typedef struct PWM_HANDLE {
   PIN_HANDLE pin;
   uint8_t unit_num;
   uint8_t channel;
+  uint16_t psc;         // value in the PSC register.
   uint16_t period;	// value in the ARR register.
   uint16_t duty;	// percent but stretch 100% to UINT16_MAX
 } PWM_HANDLE;
 
 
 
-/*! PWM set frequency
+/*! set frequency
 */
 static int pwm_set_frequency( PWM_HANDLE *hndl, double freq )
 {
+  TIM_HandleTypeDef *htim = TBL_UNIT_TO_HAL_HANDLE[ hndl->unit_num ];
+
   if( freq == 0 ) {
     hndl->period = 0;
+    __HAL_TIM_SET_COMPARE(htim, TBL_CHANNEL_TO_HAL_CHANNEL[ hndl->channel ], 0);
     return 0;
   }
 
-  TIM_HandleTypeDef *htim = TBL_UNIT_TO_HAL_HANDLE[ hndl->unit_num ];
   uint32_t ps_ar = PWM_TIMER_CLOCK / freq;
   uint16_t psc = ps_ar >> 16;
   uint16_t arr = ps_ar / (psc+1) - 1;
@@ -73,31 +76,21 @@ static int pwm_set_frequency( PWM_HANDLE *hndl, double freq )
   __HAL_TIM_SET_AUTORELOAD(htim, arr);
   __HAL_TIM_SET_COMPARE(htim, TBL_CHANNEL_TO_HAL_CHANNEL[ hndl->channel ],
                         (uint32_t)arr * hndl->duty / UINT16_MAX);
+  hndl->psc = psc;
   hndl->period = arr;
 
   return 0;
 }
 
-/*! PWM set period (us)
+/*! set period (us)
 */
 static int pwm_set_period_us( PWM_HANDLE *hndl, unsigned int us )
 {
-  TIM_HandleTypeDef *htim = TBL_UNIT_TO_HAL_HANDLE[ hndl->unit_num ];
-  uint32_t ps_ar = (uint64_t)us * PWM_TIMER_CLOCK / 1000000;
-  uint16_t psc = ps_ar >> 16;
-  uint16_t arr = ps_ar / (psc+1) - 1;
-
-  __HAL_TIM_SET_PRESCALER(htim, psc);
-  __HAL_TIM_SET_AUTORELOAD(htim, arr);
-  __HAL_TIM_SET_COMPARE(htim, TBL_CHANNEL_TO_HAL_CHANNEL[ hndl->channel ],
-                        (uint32_t)arr * hndl->duty / UINT16_MAX);
-  hndl->period = arr;
-
-  return 0;
+  double freq = (us == 0 ? 0 : 1e6 / us);
+  return pwm_set_frequency( hndl, freq );
 }
 
-
-/*! PWM set duty cycle as percentage.
+/*! set duty cycle in percentage.
 */
 static int pwm_set_duty( PWM_HANDLE *hndl, double duty )
 {
@@ -106,20 +99,18 @@ static int pwm_set_duty( PWM_HANDLE *hndl, double duty )
   hndl->duty = duty / 100 * UINT16_MAX;
   __HAL_TIM_SET_COMPARE(htim, TBL_CHANNEL_TO_HAL_CHANNEL[ hndl->channel ],
                         (uint32_t)hndl->period * duty / 100);
-
   return 0;
 }
 
 
-/*! PWM set pulse width.
+/*! set pulse width.
 */
 static int pwm_set_pulse_width_us( PWM_HANDLE *hndl, unsigned int us )
 {
   TIM_HandleTypeDef *htim = TBL_UNIT_TO_HAL_HANDLE[ hndl->unit_num ];
+  uint16_t pw_cnt = (us * (PWM_TIMER_CLOCK / 1000000)) / (hndl->psc + 1) - 1;
 
-  __HAL_TIM_SET_COMPARE(htim, TBL_CHANNEL_TO_HAL_CHANNEL[ hndl->channel ],
-                        (uint64_t)us * PWM_TIMER_CLOCK / 1000000);
-
+  __HAL_TIM_SET_COMPARE(htim, TBL_CHANNEL_TO_HAL_CHANNEL[ hndl->channel ], pw_cnt);
   return 0;
 }
 
@@ -146,7 +137,6 @@ static void c_pwm_new(mrbc_vm *vm, mrbc_value v[], int argc)
 	(PWM_PIN_ASSIGN[i].num  == pin.num) ) break;
   }
   if( i == NUM ) goto ERROR_RETURN;
-
 
   // allocate instance with PWM_HANDLE.
   v[0] = mrbc_instance_new(vm, v[0].cls, sizeof(PWM_HANDLE));
@@ -193,21 +183,9 @@ static void c_pwm_new(mrbc_vm *vm, mrbc_value v[], int argc)
 static void c_pwm_frequency(mrbc_vm *vm, mrbc_value v[], int argc)
 {
   PWM_HANDLE *hndl = (PWM_HANDLE *)(v[0].instance->data);
-  int flag_start = (hndl->period != 0);
 
   if( MRBC_ISNUMERIC(v[1]) ) {
-    double freq = MRBC_TO_FLOAT(v[1]);
-
-    pwm_set_frequency( hndl, freq );
-
-    if( freq == 0 && flag_start ) {
-      HAL_TIM_PWM_Stop( TBL_UNIT_TO_HAL_HANDLE[hndl->unit_num],
-                        TBL_CHANNEL_TO_HAL_CHANNEL[hndl->channel] );
-    }
-    if( freq != 0 && !flag_start ) {
-      HAL_TIM_PWM_Start( TBL_UNIT_TO_HAL_HANDLE[hndl->unit_num],
-                         TBL_CHANNEL_TO_HAL_CHANNEL[hndl->channel] );
-    }
+    pwm_set_frequency( hndl, MRBC_TO_FLOAT(v[1]) );
   }
 }
 
