@@ -34,11 +34,11 @@ extern TIM_HandleTypeDef htim2;
 extern TIM_HandleTypeDef htim3;
 extern TIM_HandleTypeDef htim4;
 
-static TIM_HandleTypeDef * const MAP_UNIT_TO_HAL_HANDLE[/* unit */] = {
+static TIM_HandleTypeDef * const TBL_UNIT_TO_HAL_HANDLE[/* unit */] = {
   0, &htim1, &htim2, &htim3, &htim4,
 };
 
-static uint32_t const MAP_CHANNEL_TO_HAL_CHANNEL[/* channel */] = {
+static uint32_t const TBL_CHANNEL_TO_HAL_CHANNEL[/* channel */] = {
   0, TIM_CHANNEL_1, TIM_CHANNEL_2, TIM_CHANNEL_3, TIM_CHANNEL_4,
 };
 
@@ -64,14 +64,14 @@ static int pwm_set_frequency( PWM_HANDLE *hndl, double freq )
     return 0;
   }
 
-  TIM_HandleTypeDef *htim = MAP_UNIT_TO_HAL_HANDLE[ hndl->unit_num ];
+  TIM_HandleTypeDef *htim = TBL_UNIT_TO_HAL_HANDLE[ hndl->unit_num ];
   uint32_t ps_ar = PWM_TIMER_CLOCK / freq;
   uint16_t psc = ps_ar >> 16;
   uint16_t arr = ps_ar / (psc+1) - 1;
 
   __HAL_TIM_SET_PRESCALER(htim, psc);
   __HAL_TIM_SET_AUTORELOAD(htim, arr);
-  __HAL_TIM_SET_COMPARE(htim, MAP_CHANNEL_TO_HAL_CHANNEL[ hndl->channel ],
+  __HAL_TIM_SET_COMPARE(htim, TBL_CHANNEL_TO_HAL_CHANNEL[ hndl->channel ],
                         (uint32_t)arr * hndl->duty / UINT16_MAX);
   hndl->period = arr;
 
@@ -82,14 +82,14 @@ static int pwm_set_frequency( PWM_HANDLE *hndl, double freq )
 */
 static int pwm_set_period_us( PWM_HANDLE *hndl, unsigned int us )
 {
-  TIM_HandleTypeDef *htim = MAP_UNIT_TO_HAL_HANDLE[ hndl->unit_num ];
+  TIM_HandleTypeDef *htim = TBL_UNIT_TO_HAL_HANDLE[ hndl->unit_num ];
   uint32_t ps_ar = (uint64_t)us * PWM_TIMER_CLOCK / 1000000;
   uint16_t psc = ps_ar >> 16;
   uint16_t arr = ps_ar / (psc+1) - 1;
 
   __HAL_TIM_SET_PRESCALER(htim, psc);
   __HAL_TIM_SET_AUTORELOAD(htim, arr);
-  __HAL_TIM_SET_COMPARE(htim, MAP_CHANNEL_TO_HAL_CHANNEL[ hndl->channel ],
+  __HAL_TIM_SET_COMPARE(htim, TBL_CHANNEL_TO_HAL_CHANNEL[ hndl->channel ],
                         (uint32_t)arr * hndl->duty / UINT16_MAX);
   hndl->period = arr;
 
@@ -101,10 +101,10 @@ static int pwm_set_period_us( PWM_HANDLE *hndl, unsigned int us )
 */
 static int pwm_set_duty( PWM_HANDLE *hndl, double duty )
 {
-  TIM_HandleTypeDef *htim = MAP_UNIT_TO_HAL_HANDLE[ hndl->unit_num ];
+  TIM_HandleTypeDef *htim = TBL_UNIT_TO_HAL_HANDLE[ hndl->unit_num ];
 
   hndl->duty = duty / 100 * UINT16_MAX;
-  __HAL_TIM_SET_COMPARE(htim, MAP_CHANNEL_TO_HAL_CHANNEL[ hndl->channel ],
+  __HAL_TIM_SET_COMPARE(htim, TBL_CHANNEL_TO_HAL_CHANNEL[ hndl->channel ],
                         (uint32_t)hndl->period * duty / 100);
 
   return 0;
@@ -115,9 +115,9 @@ static int pwm_set_duty( PWM_HANDLE *hndl, double duty )
 */
 static int pwm_set_pulse_width_us( PWM_HANDLE *hndl, unsigned int us )
 {
-  TIM_HandleTypeDef *htim = MAP_UNIT_TO_HAL_HANDLE[ hndl->unit_num ];
+  TIM_HandleTypeDef *htim = TBL_UNIT_TO_HAL_HANDLE[ hndl->unit_num ];
 
-  __HAL_TIM_SET_COMPARE(htim, MAP_CHANNEL_TO_HAL_CHANNEL[ hndl->channel ],
+  __HAL_TIM_SET_COMPARE(htim, TBL_CHANNEL_TO_HAL_CHANNEL[ hndl->channel ],
                         (uint64_t)us * PWM_TIMER_CLOCK / 1000000);
 
   return 0;
@@ -172,8 +172,8 @@ static void c_pwm_new(mrbc_vm *vm, mrbc_value v[], int argc)
 
   // start!
   if( hndl->period != 0 ) {
-    HAL_TIM_PWM_Start( MAP_UNIT_TO_HAL_HANDLE[hndl->unit_num],
-                       MAP_CHANNEL_TO_HAL_CHANNEL[hndl->channel] );
+    HAL_TIM_PWM_Start( TBL_UNIT_TO_HAL_HANDLE[hndl->unit_num],
+                       TBL_CHANNEL_TO_HAL_CHANNEL[hndl->channel] );
   }
   goto RETURN;
 
@@ -201,12 +201,12 @@ static void c_pwm_frequency(mrbc_vm *vm, mrbc_value v[], int argc)
     pwm_set_frequency( hndl, freq );
 
     if( freq == 0 && flag_start ) {
-      HAL_TIM_PWM_Stop( MAP_UNIT_TO_HAL_HANDLE[hndl->unit_num],
-                        MAP_CHANNEL_TO_HAL_CHANNEL[hndl->channel] );
+      HAL_TIM_PWM_Stop( TBL_UNIT_TO_HAL_HANDLE[hndl->unit_num],
+                        TBL_CHANNEL_TO_HAL_CHANNEL[hndl->channel] );
     }
     if( freq != 0 && !flag_start ) {
-      HAL_TIM_PWM_Start( MAP_UNIT_TO_HAL_HANDLE[hndl->unit_num],
-                         MAP_CHANNEL_TO_HAL_CHANNEL[hndl->channel] );
+      HAL_TIM_PWM_Start( TBL_UNIT_TO_HAL_HANDLE[hndl->unit_num],
+                         TBL_CHANNEL_TO_HAL_CHANNEL[hndl->channel] );
     }
   }
 }

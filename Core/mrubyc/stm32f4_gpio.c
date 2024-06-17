@@ -2,6 +2,16 @@
 #include "../mrubyc_src/mrubyc.h"
 #include "stm32f4_gpio.h"
 
+static uint16_t const TBL_NUM_TO_STM32PIN[/* num */] = {
+  GPIO_PIN_0,  GPIO_PIN_1,  GPIO_PIN_2,  GPIO_PIN_3,
+  GPIO_PIN_4,  GPIO_PIN_5,  GPIO_PIN_6,  GPIO_PIN_7,
+  GPIO_PIN_8,  GPIO_PIN_9,  GPIO_PIN_10, GPIO_PIN_11,
+  GPIO_PIN_12, GPIO_PIN_13, GPIO_PIN_14, GPIO_PIN_15 };
+
+static GPIO_TypeDef * const TBL_PORT_TO_STM32GPIO[/* port */] = {
+  0, GPIOA, GPIOB, GPIOC, GPIOD, GPIOE, 0, 0, GPIOH,
+};
+
 
 /*! PIN handle setter
 
@@ -29,16 +39,6 @@ int gpio_set_pin_handle( PIN_HANDLE *pin, const mrbc_value *val )
   return -1;
 }
 
-static uint16_t const MAP_NUM_TO_STM32PIN[] = {
-  GPIO_PIN_0,  GPIO_PIN_1,  GPIO_PIN_2,  GPIO_PIN_3,
-  GPIO_PIN_4,  GPIO_PIN_5,  GPIO_PIN_6,  GPIO_PIN_7,
-  GPIO_PIN_8,  GPIO_PIN_9,  GPIO_PIN_10, GPIO_PIN_11,
-  GPIO_PIN_12, GPIO_PIN_13, GPIO_PIN_14, GPIO_PIN_15 };
-
-static GPIO_TypeDef * const MAP_PORT_TO_STM32GPIO[] = {
-  0, GPIOA, GPIOB, GPIOC, GPIOD, GPIOE, 0, 0, GPIOH,
-};
-
 
 /*! set (change) mode
 
@@ -49,7 +49,7 @@ static GPIO_TypeDef * const MAP_PORT_TO_STM32GPIO[] = {
 int gpio_setmode( const PIN_HANDLE *pin, unsigned int mode )
 {
   GPIO_InitTypeDef GPIO_InitStruct = {0};
-  GPIO_InitStruct.Pin = MAP_NUM_TO_STM32PIN[pin->num];
+  GPIO_InitStruct.Pin = TBL_NUM_TO_STM32PIN[pin->num];
 
   if( mode & (GPIO_IN|GPIO_OUT|GPIO_ANALOG|GPIO_HIGH_Z|GPIO_OPEN_DRAIN) ) {
     if( mode & GPIO_ANALOG ) {
@@ -79,7 +79,7 @@ int gpio_setmode( const PIN_HANDLE *pin, unsigned int mode )
   }
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
 
-  HAL_GPIO_Init( MAP_PORT_TO_STM32GPIO[pin->port], &GPIO_InitStruct);
+  HAL_GPIO_Init( TBL_PORT_TO_STM32GPIO[pin->port], &GPIO_InitStruct);
   return 0;
 }
 
@@ -97,13 +97,13 @@ int gpio_setmode_pwm( const PIN_HANDLE *pin, int unit_num )
   };
 
   GPIO_InitTypeDef GPIO_InitStruct = {
-    .Pin = MAP_NUM_TO_STM32PIN[pin->num],
+    .Pin = TBL_NUM_TO_STM32PIN[pin->num],
     .Mode = GPIO_MODE_AF_PP,
     .Pull = GPIO_NOPULL,
     .Speed = GPIO_SPEED_FREQ_LOW,
     .Alternate = PWM_GPIO_ALT[unit_num],
   };
-  HAL_GPIO_Init( MAP_PORT_TO_STM32GPIO[pin->port], &GPIO_InitStruct);
+  HAL_GPIO_Init( TBL_PORT_TO_STM32GPIO[pin->port], &GPIO_InitStruct);
 
   return 0;
 }
@@ -176,8 +176,8 @@ static void c_gpio_read_at(mrbc_vm *vm, mrbc_value v[], int argc)
   PIN_HANDLE pin;
 
   if( gpio_set_pin_handle( &pin, &v[1] ) == 0 ) {
-    SET_INT_RETURN( HAL_GPIO_ReadPin( MAP_PORT_TO_STM32GPIO[pin.port],
-                                      MAP_NUM_TO_STM32PIN[pin.num] ));
+    SET_INT_RETURN( HAL_GPIO_ReadPin( TBL_PORT_TO_STM32GPIO[pin.port],
+                                      TBL_NUM_TO_STM32PIN[pin.num] ));
   } else {
     SET_NIL_RETURN();
   }
@@ -193,8 +193,8 @@ static void c_gpio_high_at(mrbc_vm *vm, mrbc_value v[], int argc)
   PIN_HANDLE pin;
 
   if( gpio_set_pin_handle( &pin, &v[1] ) == 0 ) {
-    SET_BOOL_RETURN( HAL_GPIO_ReadPin( MAP_PORT_TO_STM32GPIO[pin.port],
-                                       MAP_NUM_TO_STM32PIN[pin.num] ));
+    SET_BOOL_RETURN( HAL_GPIO_ReadPin( TBL_PORT_TO_STM32GPIO[pin.port],
+                                       TBL_NUM_TO_STM32PIN[pin.num] ));
   } else {
     SET_NIL_RETURN();
   }
@@ -210,8 +210,8 @@ static void c_gpio_low_at(mrbc_vm *vm, mrbc_value v[], int argc)
   PIN_HANDLE pin;
 
   if( gpio_set_pin_handle( &pin, &v[1] ) == 0 ) {
-    SET_BOOL_RETURN(!HAL_GPIO_ReadPin( MAP_PORT_TO_STM32GPIO[pin.port],
-                                       MAP_NUM_TO_STM32PIN[pin.num] ));
+    SET_BOOL_RETURN(!HAL_GPIO_ReadPin( TBL_PORT_TO_STM32GPIO[pin.port],
+                                       TBL_NUM_TO_STM32PIN[pin.num] ));
   } else {
     SET_NIL_RETURN();
   }
@@ -234,8 +234,8 @@ static void c_gpio_write_at(mrbc_vm *vm, mrbc_value v[], int argc)
 
   int val = mrbc_integer(v[2]);
   if( 0 <= val && val <= 1 ) {
-    HAL_GPIO_WritePin( MAP_PORT_TO_STM32GPIO[pin.port],
-                       MAP_NUM_TO_STM32PIN[pin.num], val );
+    HAL_GPIO_WritePin( TBL_PORT_TO_STM32GPIO[pin.port],
+                       TBL_NUM_TO_STM32PIN[pin.num], val );
   } else {
     mrbc_raise(vm, MRBC_CLASS(RangeError), 0);
   }
@@ -250,8 +250,8 @@ static void c_gpio_read(mrbc_vm *vm, mrbc_value v[], int argc)
 {
   PIN_HANDLE *pin = (PIN_HANDLE *)v[0].instance->data;
 
-  SET_INT_RETURN( HAL_GPIO_ReadPin( MAP_PORT_TO_STM32GPIO[pin->port],
-                                    MAP_NUM_TO_STM32PIN[pin->num] ));
+  SET_INT_RETURN( HAL_GPIO_ReadPin( TBL_PORT_TO_STM32GPIO[pin->port],
+                                    TBL_NUM_TO_STM32PIN[pin->num] ));
 }
 
 
@@ -263,8 +263,8 @@ static void c_gpio_high(mrbc_vm *vm, mrbc_value v[], int argc)
 {
   PIN_HANDLE *pin = (PIN_HANDLE *)v[0].instance->data;
 
-  SET_BOOL_RETURN( HAL_GPIO_ReadPin( MAP_PORT_TO_STM32GPIO[pin->port],
-                                     MAP_NUM_TO_STM32PIN[pin->num] ));
+  SET_BOOL_RETURN( HAL_GPIO_ReadPin( TBL_PORT_TO_STM32GPIO[pin->port],
+                                     TBL_NUM_TO_STM32PIN[pin->num] ));
 }
 
 
@@ -276,8 +276,8 @@ static void c_gpio_low(mrbc_vm *vm, mrbc_value v[], int argc)
 {
   PIN_HANDLE *pin = (PIN_HANDLE *)v[0].instance->data;
 
-  SET_BOOL_RETURN(!HAL_GPIO_ReadPin( MAP_PORT_TO_STM32GPIO[pin->port],
-                                     MAP_NUM_TO_STM32PIN[pin->num] ));
+  SET_BOOL_RETURN(!HAL_GPIO_ReadPin( TBL_PORT_TO_STM32GPIO[pin->port],
+                                     TBL_NUM_TO_STM32PIN[pin->num] ));
 }
 
 
@@ -293,8 +293,8 @@ static void c_gpio_write(mrbc_vm *vm, mrbc_value v[], int argc)
 
   int val = mrbc_integer(v[1]);
   if( 0 <= val && val <= 1 ) {
-    HAL_GPIO_WritePin( MAP_PORT_TO_STM32GPIO[pin->port],
-                       MAP_NUM_TO_STM32PIN[pin->num], val );
+    HAL_GPIO_WritePin( TBL_PORT_TO_STM32GPIO[pin->port],
+                       TBL_NUM_TO_STM32PIN[pin->num], val );
   } else {
     mrbc_raise(vm, MRBC_CLASS(RangeError), 0);
   }
