@@ -1,11 +1,11 @@
 #ifndef STM32F4_GPIO_H
 #define STM32F4_GPIO_H
 
+#include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include <stdint.h>
 
 
 /*!

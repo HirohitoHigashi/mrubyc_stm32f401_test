@@ -26,6 +26,8 @@ void start_mrubyc( void )
   mrbc_init(memory_pool, MRBC_MEMORY_SIZE);
   void mrbc_init_class_gpio(void);
   mrbc_init_class_gpio();
+  void mrbc_init_class_uart(void);
+  mrbc_init_class_uart();
   void mrbc_init_class_adc(void);
   mrbc_init_class_adc();
   void mrbc_init_class_pwm(void);
