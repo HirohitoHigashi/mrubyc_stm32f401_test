@@ -10,8 +10,8 @@ extern I2C_HandleTypeDef hi2c1;
 //----------------------------------------------------------------
 /*! make output buffer
 */
-static uint8_t * make_output_buffer(mrb_vm *vm, mrb_value v[], int argc,
-				    int start_idx, int *ret_bufsiz)
+uint8_t * make_output_buffer(mrb_vm *vm, mrb_value v[], int argc,
+			     int start_idx, int *ret_bufsiz)
 {
   uint8_t *ret = 0;
 
@@ -68,7 +68,7 @@ static uint8_t * make_output_buffer(mrb_vm *vm, mrb_value v[], int argc,
 
 
  ERROR_PARAM:
-  mrbc_raise(vm, MRBC_CLASS(ArgumentError), "i2c: parameter error.");
+  mrbc_raise(vm, MRBC_CLASS(ArgumentError), "Output parameter error.");
   if( ret != 0 ) {
     mrbc_free( vm, ret );
   }
@@ -206,8 +206,8 @@ static void c_i2c_write(mrb_vm *vm, mrb_value v[], int argc)
 */
 void mrbc_init_class_i2c(void)
 {
-  mrbc_class *i2c = mrbc_define_class(0, "I2C", 0);
+  mrbc_class *cls = mrbc_define_class(0, "I2C", 0);
 
-  mrbc_define_method(0, i2c, "read", c_i2c_read);
-  mrbc_define_method(0, i2c, "write", c_i2c_write);
+  mrbc_define_method(0, cls, "read", c_i2c_read);
+  mrbc_define_method(0, cls, "write", c_i2c_write);
 }

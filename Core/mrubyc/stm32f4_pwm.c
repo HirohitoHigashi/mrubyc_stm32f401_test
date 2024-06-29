@@ -236,11 +236,11 @@ static void c_pwm_pulse_width_us(mrbc_vm *vm, mrbc_value v[], int argc)
 */
 void mrbc_init_class_pwm(void)
 {
-  mrbc_class *pwm = mrbc_define_class(0, "PWM", 0);
+  mrbc_class *cls = mrbc_define_class(0, "PWM", 0);
 
-  mrbc_define_method(0, pwm, "new", c_pwm_new);
-  mrbc_define_method(0, pwm, "frequency", c_pwm_frequency);
-  mrbc_define_method(0, pwm, "period_us", c_pwm_period_us);
-  mrbc_define_method(0, pwm, "duty", c_pwm_duty);
-  mrbc_define_method(0, pwm, "pulse_width_us", c_pwm_pulse_width_us);
+  mrbc_define_method(0, cls, "new", c_pwm_new);
+  mrbc_define_method(0, cls, "frequency", c_pwm_frequency);
+  mrbc_define_method(0, cls, "period_us", c_pwm_period_us);
+  mrbc_define_method(0, cls, "duty", c_pwm_duty);
+  mrbc_define_method(0, cls, "pulse_width_us", c_pwm_pulse_width_us);
 }

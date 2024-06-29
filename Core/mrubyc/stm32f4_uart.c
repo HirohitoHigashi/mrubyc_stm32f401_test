@@ -550,23 +550,23 @@ void mrbc_init_class_uart(void)
   uart_init();
 
   // define class and methods.
-  mrbc_class *uart = mrbc_define_class(0, "UART", 0);
+  mrbc_class *cls = mrbc_define_class(0, "UART", 0);
 
-  mrbc_define_method(0, uart, "new",		c_uart_new);
-  mrbc_define_method(0, uart, "setmode",	c_uart_setmode);
-  mrbc_define_method(0, uart, "read",		c_uart_read);
-  mrbc_define_method(0, uart, "write",		c_uart_write);
-  mrbc_define_method(0, uart, "gets",		c_uart_gets);
-  mrbc_define_method(0, uart, "puts",		c_uart_puts);
-  mrbc_define_method(0, uart, "bytes_available",c_uart_bytes_available);
-  mrbc_define_method(0, uart, "bytes_to_write",	c_uart_bytes_to_write);
-  mrbc_define_method(0, uart, "can_read_line",	c_uart_can_read_line);
-  mrbc_define_method(0, uart, "flush",		c_uart_flush);
-  mrbc_define_method(0, uart, "clear_rx_buffer",c_uart_clear_rx_buffer);
-  mrbc_define_method(0, uart, "clear_tx_buffer",c_uart_clear_tx_buffer);
-  mrbc_define_method(0, uart, "send_break",	c_uart_send_break);
+  mrbc_define_method(0, cls, "new",		c_uart_new);
+  mrbc_define_method(0, cls, "setmode",		c_uart_setmode);
+  mrbc_define_method(0, cls, "read",		c_uart_read);
+  mrbc_define_method(0, cls, "write",		c_uart_write);
+  mrbc_define_method(0, cls, "gets",		c_uart_gets);
+  mrbc_define_method(0, cls, "puts",		c_uart_puts);
+  mrbc_define_method(0, cls, "bytes_available",	c_uart_bytes_available);
+  mrbc_define_method(0, cls, "bytes_to_write",	c_uart_bytes_to_write);
+  mrbc_define_method(0, cls, "can_read_line",	c_uart_can_read_line);
+  mrbc_define_method(0, cls, "flush",		c_uart_flush);
+  mrbc_define_method(0, cls, "clear_rx_buffer",	c_uart_clear_rx_buffer);
+  mrbc_define_method(0, cls, "clear_tx_buffer",	c_uart_clear_tx_buffer);
+  mrbc_define_method(0, cls, "send_break",	c_uart_send_break);
 
-  mrbc_set_class_const(uart, mrbc_str_to_symid("NONE"), &mrbc_integer_value(0));
-  mrbc_set_class_const(uart, mrbc_str_to_symid("ODD"), &mrbc_integer_value(1));
-  mrbc_set_class_const(uart, mrbc_str_to_symid("EVEN"), &mrbc_integer_value(2));
+  mrbc_set_class_const(cls, mrbc_str_to_symid("NONE"), &mrbc_integer_value(0));
+  mrbc_set_class_const(cls, mrbc_str_to_symid("ODD"), &mrbc_integer_value(1));
+  mrbc_set_class_const(cls, mrbc_str_to_symid("EVEN"), &mrbc_integer_value(2));
 }
