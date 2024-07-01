@@ -36,7 +36,7 @@ uint8_t * make_output_buffer(mrb_vm *vm, mrb_value v[], int argc,
     }
   }
   *ret_bufsiz = bufsiz;
-  if( bufsiz == 0 ) return ret;
+  if( bufsiz == 0 ) goto ERROR_PARAM;
 
   // alloc buffer and copy data
   ret = mrbc_alloc(vm, bufsiz);
