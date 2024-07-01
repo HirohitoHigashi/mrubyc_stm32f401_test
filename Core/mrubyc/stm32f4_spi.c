@@ -1,12 +1,30 @@
+/*! @file
+  @brief
+  SPI class.
+
+  <pre>
+  An implementation of common peripheral I/O API for mruby/c.
+  https://github.com/mruby/microcontroller-peripheral-interface-guide
+
+  Copyright (C) 2024- Shimane IT Open-Innovation Center.
+
+  This file is distributed under BSD 3-Clause License.
+
+  </pre>
+*/
+
 #include "main.h"
 #include "../mrubyc_src/mrubyc.h"
 
+//@cond
 #include <string.h>
-
-#define SPI_TIMEOUT_ms 3000
-#define SPI_BASEFREQ 42000000U  // 42MHz
+//@endcond
 
 extern SPI_HandleTypeDef hspi3;
+
+static const uint32_t SPI_TIMEOUT_ms = 3000;
+static const uint32_t SPI_BASEFREQ = 42000000U;	// 42MHz
+
 
 uint8_t * make_output_buffer(mrb_vm *vm, mrb_value v[], int argc,
 			     int start_idx, int *ret_bufsiz);
@@ -85,6 +103,7 @@ static int spi_setmode( SPI_HandleTypeDef *hspi,
 //================================================================
 /*! SPI constructor
 
+  @verbatim
   spi = SPI.new()   # all default. (mode 0, freq 656kHz, MSB_FIRST)
 
   spi = SPI.new( id=nil, params )
@@ -97,6 +116,7 @@ static int spi_setmode( SPI_HandleTypeDef *hspi,
   CN7   1    PC10  SPI3_SCK
   CN7   2    PC11  SPI3_MISO
   CN7   3    PC12  SPI3_MOSI
+  @endverbatim
 */
 static void c_spi_new(mrbc_vm *vm, mrbc_value v[], int argc)
 {
@@ -110,7 +130,9 @@ static void c_spi_new(mrbc_vm *vm, mrbc_value v[], int argc)
 //================================================================
 /*! set mode
 
+  @verbatim
   spi.setmode( *params )
+  @endverbatim
 */
 static void c_spi_setmode(mrbc_vm *vm, mrbc_value v[], int argc)
 {
@@ -137,9 +159,9 @@ static void c_spi_setmode(mrbc_vm *vm, mrbc_value v[], int argc)
 //================================================================
 /*! SPI read
 
-  s = spi.read(read_bytes)
-  @param  read_bytes	Number of bytes receive.
-  @return String	Received data.
+  @verbatim
+  s = spi.read(read_bytes) -> String
+  @endverbatim
 */
 static void c_spi_read(mrbc_vm *vm, mrbc_value v[], int argc)
 {
@@ -168,9 +190,11 @@ static void c_spi_read(mrbc_vm *vm, mrbc_value v[], int argc)
 //================================================================
 /*! SPI write
 
+  @verbatim
   spi.write( "str" )
   spi.write( d1, d2, ...)
   spi.write( [d1, d2,...] )
+  @endverbatim
 */
 static void c_spi_write(mrbc_vm *vm, mrbc_value v[], int argc)
 {
@@ -193,7 +217,9 @@ static void c_spi_write(mrbc_vm *vm, mrbc_value v[], int argc)
 //================================================================
 /*! SPI transfer
 
-  s = spi.transfer( out_data, additional_read_bytes = 0 )
+  @verbatim
+  s = spi.transfer( out_data, additional_read_bytes = 0 ) -> String
+  @endverbatim
 */
 static void c_spi_transfer(mrbc_vm *vm, mrbc_value v[], int argc)
 {

@@ -1,8 +1,24 @@
+/*! @file
+  @brief
+  UART class header.
+
+  <pre>
+  An implementation of common peripheral I/O API for mruby/c.
+  https://github.com/mruby/microcontroller-peripheral-interface-guide
+
+  Copyright (C) 2024- Shimane IT Open-Innovation Center.
+
+  This file is distributed under BSD 3-Clause License.
+
+  </pre>
+*/
+
 #ifndef STM32F4_UART_H
 #define STM32F4_UART_H
 
+//@cond
 #include <stdint.h>
-#include "stm32f4_gpio.h"
+//@endcond
 
 #ifdef __cplusplus
 extern "C" {
@@ -12,18 +28,16 @@ extern "C" {
 #define UART_SIZE_RXFIFO 128
 #endif
 
-/*! UART Handle
+/*!@brief
+  UART Handle
 */
 typedef struct UART_HANDLE {
-  PIN_HANDLE txd_pin;
-  PIN_HANDLE rxd_pin;
+  uint8_t unit_num;		//!< UART unit number 1..
+  uint8_t delimiter;		//!< line delimiter such as '\\n'
+  uint16_t rx_rd;		//!< index of rxfifo for read.
 
-  uint8_t unit_num;		// 1..
-  uint8_t delimiter;		// '\n'
-  uint16_t rx_rd;		// index of rxfifo for read.
-
-  UART_HandleTypeDef *hal_uart;
-  uint8_t rxfifo[UART_SIZE_RXFIFO];	// FIFO for received data.
+  UART_HandleTypeDef *hal_uart;		//!< STM32 HAL library UART handle.
+  uint8_t rxfifo[UART_SIZE_RXFIFO];	//!< FIFO for received data.
 
 } UART_HANDLE;
 

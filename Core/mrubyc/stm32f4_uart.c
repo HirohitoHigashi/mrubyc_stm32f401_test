@@ -1,3 +1,18 @@
+/*! @file
+  @brief
+  UART class.
+
+  <pre>
+  An implementation of common peripheral I/O API for mruby/c.
+  https://github.com/mruby/microcontroller-peripheral-interface-guide
+
+  Copyright (C) 2024- Shimane IT Open-Innovation Center.
+
+  This file is distributed under BSD 3-Clause License.
+
+  </pre>
+*/
+
 #include "main.h"
 #include "../mrubyc_src/mrubyc.h"
 #include "stm32f4_uart.h"
@@ -34,8 +49,6 @@ void uart_init(void)
     UART 1
   */
   uh1 = (UART_HANDLE){
-    .txd_pin = (PIN_HANDLE){1,9},	// PA9
-    .rxd_pin = (PIN_HANDLE){1,10},	// PA10
     .unit_num = 1,
     .delimiter = '\n',
     .rx_rd = 0,
@@ -47,8 +60,6 @@ void uart_init(void)
     UART 2
   */
   uh2 = (UART_HANDLE){
-    .txd_pin = (PIN_HANDLE){1,2},	// PA2
-    .rxd_pin = (PIN_HANDLE){1,3},	// PA3
     .unit_num = 2,
     .delimiter = '\n',
     .rx_rd = 0,
@@ -60,8 +71,6 @@ void uart_init(void)
     UART 6
   */
   uh6 = (UART_HANDLE){
-    .txd_pin = (PIN_HANDLE){1,11},	// PA11
-    .rxd_pin = (PIN_HANDLE){1,12},	// PA12
     .unit_num = 6,
     .delimiter = '\n',
     .rx_rd = 0,

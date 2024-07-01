@@ -1,32 +1,47 @@
+/*! @file
+  @brief
+  PWM class.
+
+  <pre>
+  An implementation of common peripheral I/O API for mruby/c.
+  https://github.com/mruby/microcontroller-peripheral-interface-guide
+
+  Copyright (C) 2024- Shimane IT Open-Innovation Center.
+
+  This file is distributed under BSD 3-Clause License.
+
+  </pre>
+*/
+
 #include "main.h"
 #include "../mrubyc_src/mrubyc.h"
 #include "stm32f4_gpio.h"
 
-const uint32_t PWM_TIMER_CLOCK = 84000000;
+static const uint32_t PWM_TIMER_FREQ = 84000000;	// 84MHz
 
 
-/*! PWM pin assign table
+/*
+  PWM pin assign table
 */
 struct PWM_PIN_ASSIGN {
-  uint8_t port;
-  uint8_t num;
-  uint8_t unit_num;	// Timer unit number. (1..)
-  uint8_t channel;	// Timer channel. (1..4)
+  PIN_HANDLE pin;	//!< Pin
+  uint8_t unit_num;	//!< Timer unit number. (1..)
+  uint8_t channel;	//!< Timer channel. (1..4)
 };
 
 static struct PWM_PIN_ASSIGN const PWM_PIN_ASSIGN[] =
 {
-  { 1,	6, 3, 1 },	// PA6	TIM3_CH1
-  { 1,	7, 3, 2 },	// PA7	TIM3_CH2
-  { 2,	6, 4, 1 },	// PB6	TIM4_CH1
-  { 3,	7, 3, 2 },	// PC7	TIM3_CH2
-  { 1,	8, 1, 1 },	// PA8	TIM1_CH1
-  { 2, 10, 2, 3 },	// PB10	TIM2_CH3
-  { 2,	4, 3, 1 },	// PB4	TIM3_CH1
-  { 2,	5, 3, 2 },	// PB5	TIM3_CH2
-  { 1,	0, 2, 1 },	// PA0	TIM2_CH1
-  { 1,	1, 2, 2 },	// PA1	TIM2_CH2
-  { 2,	0, 3, 3 },	// PB0	TIM3_CH3
+  {{ 1,	6}, 3, 1 },	// PA6	TIM3_CH1
+  {{ 1,	7}, 3, 2 },	// PA7	TIM3_CH2
+  {{ 2,	6}, 4, 1 },	// PB6	TIM4_CH1
+  {{ 3,	7}, 3, 2 },	// PC7	TIM3_CH2
+  {{ 1,	8}, 1, 1 },	// PA8	TIM1_CH1
+  {{ 2,10}, 2, 3 },	// PB10	TIM2_CH3
+  {{ 2,	4}, 3, 1 },	// PB4	TIM3_CH1
+  {{ 2,	5}, 3, 2 },	// PB5	TIM3_CH2
+  {{ 1,	0}, 2, 1 },	// PA0	TIM2_CH1
+  {{ 1,	1}, 2, 2 },	// PA1	TIM2_CH2
+  {{ 2,	0}, 3, 3 },	// PB0	TIM3_CH3
 };
 
 extern TIM_HandleTypeDef htim1;
@@ -43,19 +58,21 @@ static uint32_t const TBL_CHANNEL_TO_HAL_CHANNEL[/* channel */] = {
 };
 
 
-/*! PWM handle
+/*!
+  PWM handle
 */
 typedef struct PWM_HANDLE {
-  PIN_HANDLE pin;
-  uint8_t unit_num;
-  uint8_t channel;
-  uint16_t psc;         // value in the PSC register.
-  uint16_t period;	// value in the ARR register.
-  uint16_t duty;	// percent but stretch 100% to UINT16_MAX
+  PIN_HANDLE pin;	//!< pin
+  uint8_t unit_num;	//!< timer unit number.
+  uint8_t channel;	//!< timer channel number.
+  uint16_t psc;         //!< value in the PSC register.
+  uint16_t period;	//!< value in the ARR register.
+  uint16_t duty;	//!< percent but stretch 100% to UINT16_MAX
 } PWM_HANDLE;
 
 
 
+//================================================================
 /*! set frequency
 */
 static int pwm_set_frequency( PWM_HANDLE *hndl, double freq )
@@ -68,7 +85,7 @@ static int pwm_set_frequency( PWM_HANDLE *hndl, double freq )
     return 0;
   }
 
-  uint32_t ps_ar = PWM_TIMER_CLOCK / freq;
+  uint32_t ps_ar = PWM_TIMER_FREQ / freq;
   uint16_t psc = ps_ar >> 16;
   uint16_t arr = ps_ar / (psc+1) - 1;
 
@@ -82,6 +99,7 @@ static int pwm_set_frequency( PWM_HANDLE *hndl, double freq )
   return 0;
 }
 
+//================================================================
 /*! set period (us)
 */
 static int pwm_set_period_us( PWM_HANDLE *hndl, unsigned int us )
@@ -90,6 +108,7 @@ static int pwm_set_period_us( PWM_HANDLE *hndl, unsigned int us )
   return pwm_set_frequency( hndl, freq );
 }
 
+//================================================================
 /*! set duty cycle in percentage.
 */
 static int pwm_set_duty( PWM_HANDLE *hndl, double duty )
@@ -103,18 +122,21 @@ static int pwm_set_duty( PWM_HANDLE *hndl, double duty )
 }
 
 
+//================================================================
 /*! set pulse width.
 */
 static int pwm_set_pulse_width_us( PWM_HANDLE *hndl, unsigned int us )
 {
   TIM_HandleTypeDef *htim = TBL_UNIT_TO_HAL_HANDLE[ hndl->unit_num ];
-  uint16_t pw_cnt = (us * (PWM_TIMER_CLOCK / 1000000)) / (hndl->psc + 1) - 1;
+  uint16_t pw_cnt = (us * (PWM_TIMER_FREQ / 1000000)) / (hndl->psc + 1) - 1;
 
-  __HAL_TIM_SET_COMPARE(htim, TBL_CHANNEL_TO_HAL_CHANNEL[ hndl->channel ], pw_cnt);
+  __HAL_TIM_SET_COMPARE(htim, TBL_CHANNEL_TO_HAL_CHANNEL[ hndl->channel ],
+			pw_cnt);
   return 0;
 }
 
 
+//================================================================
 /*! constructor
 
   pwm1 = PWM.new("PA6")
@@ -133,8 +155,8 @@ static void c_pwm_new(mrbc_vm *vm, mrbc_value v[], int argc)
   static const int NUM = sizeof(PWM_PIN_ASSIGN)/sizeof(PWM_PIN_ASSIGN[0]);
   int i;
   for( i = 0; i < NUM; i++ ) {
-    if( (PWM_PIN_ASSIGN[i].port == pin.port) &&
-	(PWM_PIN_ASSIGN[i].num  == pin.num) ) break;
+    if( (PWM_PIN_ASSIGN[i].pin.port == pin.port) &&
+	(PWM_PIN_ASSIGN[i].pin.num  == pin.num) ) break;
   }
   if( i == NUM ) goto ERROR_RETURN;
 
@@ -176,6 +198,7 @@ static void c_pwm_new(mrbc_vm *vm, mrbc_value v[], int argc)
 }
 
 
+//================================================================
 /*! set frequency
 
   pwm1.frequency( 440 )
@@ -190,6 +213,7 @@ static void c_pwm_frequency(mrbc_vm *vm, mrbc_value v[], int argc)
 }
 
 
+//================================================================
 /*! set period in microsecond
 
   pwm1.period_us( 2273 )
@@ -204,6 +228,7 @@ static void c_pwm_period_us(mrbc_vm *vm, mrbc_value v[], int argc)
 }
 
 
+//================================================================
 /*! PWM set duty cycle as percentage.
 
   pwm1.duty( 50 )
@@ -218,6 +243,7 @@ static void c_pwm_duty(mrbc_vm *vm, mrbc_value v[], int argc)
 }
 
 
+//================================================================
 /*! PWM set pulse width in microsecond.
 
   pwm1.pulse_width_us( 20 )
@@ -232,6 +258,7 @@ static void c_pwm_pulse_width_us(mrbc_vm *vm, mrbc_value v[], int argc)
 }
 
 
+//================================================================
 /*! Initializer
 */
 void mrbc_init_class_pwm(void)

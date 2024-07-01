@@ -1,14 +1,39 @@
+/*! @file
+  @brief
+  I2C class.
+
+  <pre>
+  An implementation of common peripheral I/O API for mruby/c.
+  https://github.com/mruby/microcontroller-peripheral-interface-guide
+
+  Copyright (C) 2024- Shimane IT Open-Innovation Center.
+
+  This file is distributed under BSD 3-Clause License.
+
+  </pre>
+*/
+
 #include "main.h"
 #include "../mrubyc_src/mrubyc.h"
 
+//@cond
 #include <string.h>
-
-#define I2C_TIMEOUT_ms 3000
+//@endcond
 
 extern I2C_HandleTypeDef hi2c1;
 
-//----------------------------------------------------------------
+static const uint32_t I2C_TIMEOUT_ms = 3000;
+
+
+//================================================================
 /*! make output buffer
+
+  @param vm	Pointer to vm
+  @param v	argments
+  @param argc	num of arguments
+  @param start_idx  Argument parsing start position.
+  @param ret_bufsiz allocated buffer size.
+  @return	pointer to allocated buffer, or NULL is error.
 */
 uint8_t * make_output_buffer(mrb_vm *vm, mrb_value v[], int argc,
 			     int start_idx, int *ret_bufsiz)

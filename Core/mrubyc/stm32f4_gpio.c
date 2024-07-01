@@ -1,3 +1,19 @@
+/*! @file
+  @brief
+  GPIO class.
+
+  <pre>
+  An implementation of common peripheral I/O API for mruby/c.
+  https://github.com/mruby/microcontroller-peripheral-interface-guide
+
+  Copyright (C) 2024- Shimane IT Open-Innovation Center.
+
+  This file is distributed under BSD 3-Clause License.
+
+  </pre>
+*/
+
+
 #include "main.h"
 #include "../mrubyc_src/mrubyc.h"
 #include "stm32f4_gpio.h"
@@ -13,6 +29,7 @@ static GPIO_TypeDef * const TBL_PORT_TO_STM32GPIO[/* port */] = {
 };
 
 
+//================================================================
 /*! PIN handle setter
 
   @param  pin		dist.
@@ -40,6 +57,7 @@ int gpio_set_pin_handle( PIN_HANDLE *pin, const mrbc_value *val )
 }
 
 
+//================================================================
 /*! set (change) mode
 
   @param  pin	target pin.
@@ -84,6 +102,7 @@ int gpio_setmode( const PIN_HANDLE *pin, unsigned int mode )
 }
 
 
+//================================================================
 /*! set mode to PWM
 
   @param  pin	target pin.
@@ -109,6 +128,7 @@ int gpio_setmode_pwm( const PIN_HANDLE *pin, int unit_num )
 }
 
 
+//================================================================
 /*! constructor
 
   gpio1 = GPIO.new("PA0", GPIO::OUT )
@@ -130,6 +150,7 @@ static void c_gpio_new(mrbc_vm *vm, mrbc_value v[], int argc)
 }
 
 
+//================================================================
 /*! setmode
 
   GPIO.setmode( "PA0", GPIO::IN )	# class method
@@ -167,6 +188,7 @@ static void c_gpio_setmode(mrbc_vm *vm, mrbc_value v[], int argc)
 }
 
 
+//================================================================
 /*! read_at -> Integer
 
   v1 = GPIO.read_at("PA0")	# read from "PA0" pin.
@@ -184,6 +206,7 @@ static void c_gpio_read_at(mrbc_vm *vm, mrbc_value v[], int argc)
 }
 
 
+//================================================================
 /*! high_at? -> bool
 
   v1 = GPIO.high_at?("PA0")
@@ -201,6 +224,7 @@ static void c_gpio_high_at(mrbc_vm *vm, mrbc_value v[], int argc)
 }
 
 
+//================================================================
 /*! low_at? -> bool
 
   v1 = GPIO.low_at?("PA0")
@@ -218,6 +242,7 @@ static void c_gpio_low_at(mrbc_vm *vm, mrbc_value v[], int argc)
 }
 
 
+//================================================================
 /*! write_at
 
   v1 = GPIO.write_at("PA0", 0 )      # output zero to "PA0" pin.
@@ -242,6 +267,7 @@ static void c_gpio_write_at(mrbc_vm *vm, mrbc_value v[], int argc)
 }
 
 
+//================================================================
 /*! read
 
   x = gpio1.read() -> Integer
@@ -255,6 +281,7 @@ static void c_gpio_read(mrbc_vm *vm, mrbc_value v[], int argc)
 }
 
 
+//================================================================
 /*! high?
 
   if gpio1.high?() ...
@@ -268,6 +295,7 @@ static void c_gpio_high(mrbc_vm *vm, mrbc_value v[], int argc)
 }
 
 
+//================================================================
 /*! low?
 
   if gpio1.low?() ...
@@ -281,6 +309,7 @@ static void c_gpio_low(mrbc_vm *vm, mrbc_value v[], int argc)
 }
 
 
+//================================================================
 /*! write
 
   gpio1.write( 0 or 1 )
@@ -301,6 +330,7 @@ static void c_gpio_write(mrbc_vm *vm, mrbc_value v[], int argc)
 }
 
 
+//================================================================
 /*! set up the GPIO class.
 */
 void mrbc_init_class_gpio( void )

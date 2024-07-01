@@ -1,3 +1,18 @@
+/*! @file
+  @brief
+  ADC class.
+
+  <pre>
+  An implementation of common peripheral I/O API for mruby/c.
+  https://github.com/mruby/microcontroller-peripheral-interface-guide
+
+  Copyright (C) 2024- Shimane IT Open-Innovation Center.
+
+  This file is distributed under BSD 3-Clause License.
+
+  </pre>
+*/
+
 #include "main.h"
 #include "../mrubyc_src/mrubyc.h"
 #include "stm32f4_gpio.h"
@@ -6,18 +21,19 @@
 extern ADC_HandleTypeDef hadc1;
 
 
-/*! ADC handle
+/*!
+  ADC handle
 */
 typedef struct ADC_HANDLE {
-  PIN_HANDLE pin;
-  uint32_t channel;
+  PIN_HANDLE pin;	//!< Pin
+  uint32_t channel;	//!< ADC channel.
 } ADC_HANDLE;
 
-/*
+/*!
   Pin assign vs ADC channel table.
 */
-static ADC_HANDLE const adc_handle_[] = {
-  //                               GPIO  ADC ch.  silk
+static ADC_HANDLE const TBL_PIN_TO_ADC_CHANNEL[] = {
+				// GPIO  ADC ch.  silk
   {{1, 0}, ADC_CHANNEL_0},	// PA0   0        A0
   {{1, 1}, ADC_CHANNEL_1},	// PA1   1        A1
   {{1, 4}, ADC_CHANNEL_4},	// PA1   1        A2
@@ -27,6 +43,7 @@ static ADC_HANDLE const adc_handle_[] = {
 };
 
 
+//================================================================
 /*! constructor
 
   adc1 = ADC.new("PA1")
@@ -38,18 +55,18 @@ static void c_adc_new(mrbc_vm *vm, mrbc_value v[], int argc)
   PIN_HANDLE pin;
   if( gpio_set_pin_handle( &pin, &v[1] ) != 0 ) goto ERROR_RETURN;
 
-  // find ADC channel from adc_handle_ table.
-  static const int NUM = sizeof(adc_handle_)/sizeof(ADC_HANDLE);
+  // find ADC channel from TBL_PIN_TO_ADC_CHANNEL table.
+  static const int NUM = sizeof(TBL_PIN_TO_ADC_CHANNEL)/sizeof(ADC_HANDLE);
   int i;
   for( i = 0; i < NUM; i++ ) {
-    if( (adc_handle_[i].pin.port == pin.port) &&
-	(adc_handle_[i].pin.num == pin.num) ) break;
+    if( (TBL_PIN_TO_ADC_CHANNEL[i].pin.port == pin.port) &&
+	(TBL_PIN_TO_ADC_CHANNEL[i].pin.num == pin.num) ) break;
   }
   if( i == NUM ) goto ERROR_RETURN;
 
   // allocate instance with ADC_HANDLE table pointer.
   v[0] = mrbc_instance_new(vm, v[0].cls, sizeof(ADC_HANDLE *));
-  *(const ADC_HANDLE **)(v[0].instance->data) = &adc_handle_[i];
+  *(const ADC_HANDLE **)(v[0].instance->data) = &TBL_PIN_TO_ADC_CHANNEL[i];
 
   // set pin to analog input
   gpio_setmode( &pin, GPIO_ANALOG|GPIO_IN );
@@ -77,6 +94,7 @@ static uint32_t read_sub(mrbc_vm *vm, mrbc_value v[], int argc)
 }
 
 
+//================================================================
 /*! read_voltage
 
   adc1.read_voltage() -> Float
@@ -89,6 +107,7 @@ static void c_adc_read_voltage(mrbc_vm *vm, mrbc_value v[], int argc)
 }
 
 
+//================================================================
 /*! read_raw
 
   adc1.read_raw() -> Integer
@@ -101,6 +120,7 @@ static void c_adc_read_raw(mrbc_vm *vm, mrbc_value v[], int argc)
 }
 
 
+//================================================================
 /*! Initializer
 */
 void mrbc_init_class_adc(void)
